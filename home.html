@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>This is a dumb simulation</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body onload="startUp()">
+<div id="inputContainer">
+    <div>Look at all them dots</div>
+
+    <table>
+        <tr>
+            <td>
+                <div>Frame: </div>
+            </td>
+            <td>
+                <div id="frameNumber"></div>
+            </td>
+            <td>
+                <div>Dots: </div>
+            </td>
+            <td>
+                <div id="asteroidCount"></div>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+
+                <button type="button" onclick="onStartButtonClick()">Start</button>
+                <button type="button" onclick="onStopButtonClick()">Stop</button>
+                <button type="button" onclick="onResetButtonClick()">Reset</button>
+                <input type="number" name="quantity" id="asteroidInput" min="1" max="1000000" value="50000">
+                <button type="button" onclick="onAddMore()">Add: </button>
+                <input type="number" name="quantityToAdd" id="quantityToAdd" min="1" max="1000000" value="5000">
+
+        </tr>
+    </table>
+
+
+</div>
+<canvas id="mainCanvas" width="1000" height="1000" style="border:1px solid #000000;">
+
+</canvas>
+</body>
+
+<script type="text/javascript">
+
+
+    var data = {
+        frame: 0,
+        asteroids: initAsteroids(10000,1000,1000)
+    }
+
+    let isRunning = false;
+    let myCanvas = document.getElementById("mainCanvas");
+    let frameElement = document.getElementById("frameNumber");
+    let asteroidCountDiv = document.getElementById("asteroidCount");
+
+    let ctx = myCanvas.getContext("2d");
+    let canvasWidth = 1000;
+    let canvasHeight = 1000;
+
+    function onStartButtonClick() {
+        isRunning = true;
+    }
+
+    function onStopButtonClick() {
+        isRunning = false;
+    }
+
+    function onResetButtonClick() {
+        data.frame = 0;
+        let count = document.getElementById("asteroidInput").value;
+        data.asteroids = initAsteroids(count,1000,1000);
+        render();
+    }
+
+    function onAddMore() {
+        console.log("ADDED MORE!")
+        let count = document.getElementById("quantityToAdd").value;
+        let newDots = initAsteroids(count,1000,1000);
+        console.log("Before count: " + data.asteroids.length)
+        console.log("About to add: " + newDots.length)
+        data.asteroids = data.asteroids.concat(newDots);
+        console.log("After count: " + data.asteroids.length)
+
+    }
+    function startUp() {
+        // Do start up stuffs
+
+        // Start the main loop
+        setInterval(onFrame, 30);
+
+    }
+
+    function onFrame() {
+        if(isRunning) {
+            update()
+            render()
+            data.frame = data.frame + 1;
+        }
+    }
+
+    function update() {
+        // console.log("Updating frame: " + data.frame);
+
+
+        data.asteroids.forEach(function(item,index,array) {
+            item.xPos = item.xPos + item.xVel;
+            item.yPos = item.yPos + item.yVel;
+            if((item.xPos > 1000) || (item.xPos < 0)) {
+                item.xVel = item.xVel * -1;
+            }
+            if((item.yPos > 1000) || (item.yPos < 0)) {
+                item.yVel = item.yVel * -1;
+            }
+        });
+
+    }
+
+    function render() {
+        // console.log("Rendering frame: " + data.frame);
+        frameElement.innerHTML = data.frame;
+        asteroidCountDiv.innerHTML = data.asteroids.length;
+
+        let canvasData = ctx.createImageData(canvasWidth, canvasHeight);
+        data.asteroids.forEach(function (item,index,array) {
+            drawPixel(canvasData, Math.floor(item.xPos), Math.floor(item.yPos), 255, 0, 0, 255);
+        })
+
+        ctx.putImageData(canvasData, 0, 0);
+    }
+
+    function drawPixel (canvasData, x, y, r, g, b, a) {
+        let offset = (x + y * 1000) * 4;
+
+        canvasData.data[offset + 0] = r;
+        canvasData.data[offset + 1] = g;
+        canvasData.data[offset + 2] = b;
+        canvasData.data[offset + 3] = a;
+    }
+
+    function initAsteroids(count, maxWidth, maxHeight) {
+        let asteroids = [];
+        for(let i=0; i<count; i++) {
+
+            let asteroid = new Object();
+            asteroid.xPos = Math.ceil(Math.random() * maxWidth);
+            asteroid.yPos = Math.ceil(Math.random() * maxHeight);
+            asteroid.xVel = (Math.random() * 2) - 1;
+            asteroid.yVel = (Math.random() * 2) - 1;
+
+            asteroids.push(asteroid);
+        }
+
+        return asteroids;
+    }
+
+
+</script>
+
+</html>

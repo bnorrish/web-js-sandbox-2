@@ -1,5 +1,5 @@
 
-var GRAVITY = .01;
+var GRAVITY = .001;
 
 var data = {
     frame: 0,
@@ -82,7 +82,10 @@ function render() {
 
     let canvasData = ctx.createImageData(canvasWidth, canvasHeight);
     data.asteroids.forEach(function (item,index,array) {
-        drawPixel(canvasData, Math.floor(item.xPos), Math.floor(item.yPos), 255, 0, 0, 255);
+        let red = 255;
+        let green = item.mass > 1 ? 255 : 0;
+        let blue = item.mass > 10 ? 255 : 0;
+        drawPixel(canvasData, Math.floor(item.xPos), Math.floor(item.yPos), red, green, blue, 255);
     })
 
     ctx.putImageData(canvasData, 0, 0);
@@ -107,7 +110,18 @@ function initAsteroids(count, maxWidth, maxHeight) {
         asteroid.yVel = (Math.random() * 2) - 1;
         asteroid.xForce = 0;
         asteroid.yForce = 0;
-        asteroid.mass =1;
+        asteroid.mass = 1;
+
+        // Make 1 in 10 a 'heavy' object
+
+        if((Math.floor(Math.random() * 100) % 10) === 0) {
+            asteroid.mass = 10;
+        }
+
+        // Make 1 in 1000 an 'immense' object
+        if((Math.floor(Math.random() * 1000) % 1000) === 0) {
+            asteroid.mass = 1000;
+        }
 
         asteroids.push(asteroid);
     }
@@ -128,7 +142,9 @@ function updateForces(asteroids) {
                 return;
             }
 
-            let force = calcGravity(GRAVITY,1,1,
+            let force = calcGravity(GRAVITY,
+                thisAsteroid.mass,
+                otherAsteroid.mass,
                 thisAsteroid.xPos,
                 thisAsteroid.yPos,
                 otherAsteroid.xPos,
